@@ -1,6 +1,7 @@
 import './index.css'
 import avatar from './images/avatar.png'
 import React from 'react'
+import { v4 as uuid } from 'uuid'
 
 // 时间格式化
 function formatDate (time) {
@@ -48,7 +49,70 @@ class App extends React.Component {
         // 1: 点赞 0：无态度 -1:踩
         attitude: -1
       }
-    ]
+    ],
+    comment: ''
+  }
+  // 切换状态
+  changTab = (type) => {
+    this.setState({
+      active: type
+    })
+  }
+  // 文本数据单向绑定
+  textChange = (e) => {
+    this.setState({
+      comment: e.target.value
+    })
+  }
+  // 数组添加一条数据
+  publishComment = () => {
+    this.setState({
+      list: [...this.state.list, {
+        id: uuid(),
+        author: '闵哈哈',
+        comment: this.state.comment,
+        time: new Date(),
+        // 1: 点赞 0：无态度 -1:踩
+        attitude: 0
+      }],
+      comment: ''
+    })
+  }
+  // 根据id删除数组中一项
+  deleteComment = (id) => {
+    this.setState({
+      list: this.state.list.filter(item => item.id !== id)
+    })
+  }
+  // 点赞按钮切换
+  likeChange = (item) => {
+    this.setState({
+      list: this.state.list.map(it => {
+        if (item.id === it.id) {
+          return {
+            ...item,
+            attitude: it.attitude === 0 ? 1 : 0
+          }
+        } else {
+          return item
+        }
+      })
+    })
+  }
+  // 差评按钮切换
+  hateChange = (item) => {
+    this.setState({
+      list: this.state.list.map(it => {
+        if (item.id === it.id) {
+          return {
+            ...item,
+            attitude: it.attitude === 0 ? -1 : 0
+          }
+        } else {
+          return item
+        }
+      })
+    })
   }
   render () {
     return (
@@ -64,6 +128,7 @@ class App extends React.Component {
               {
                 this.state.tabs.map(tab => (
                   <li
+                    onClick={() => { this.changTab(tab.type) }}
                     key={tab.id}
                     className={tab.type === this.state.active ? 'on' : ''}
                   >按{tab.name}排序</li>
@@ -83,8 +148,10 @@ class App extends React.Component {
                 rows="5"
                 placeholder="发条友善的评论"
                 className="ipt-txt"
+                value={this.state.comment}
+                onChange={this.textChange}
               />
-              <button className="comment-submit">发表评论</button>
+              <button className="comment-submit" onClick={this.publishComment}>发表评论</button>
             </div>
             <div className="comment-emoji">
               <i className="face"></i>
@@ -106,12 +173,12 @@ class App extends React.Component {
                     <div className="info">
                       <span className="time">{formatDate(item.time)}</span>
                       <span className={item.attitude === 1 ? 'like liked' : 'like'}>
-                        <i className="icon" />
+                        <i className="icon" onClick={() => { this.likeChange(item) }} />
                       </span>
                       <span className={item.attitude === -1 ? 'hate hated' : 'hate'}>
-                        <i className="icon" />
+                        <i className="icon" onClick={() => { this.hateChange(item) }} />
                       </span>
-                      <span className="reply btn-hover">删除</span>
+                      <span className="reply btn-hover" onClick={() => { this.deleteComment(item.id) }}>删除</span>
                     </div>
                   </div>
                 </div>
